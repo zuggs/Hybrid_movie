@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Hello MUI</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="../css/mui.min.css">
+		<link rel="stylesheet" href="../css/swiper.min.css">
+		<script type="text/javascript">
+			document.documentElement.style.fontSize = document.documentElement.clientWidth /3.75 +'px';
+			window.onresize = function(){
+				document.documentElement.style.fontSize = document.documentElement.clientWidth /3.75 +'px';
+			}
+		</script>
+		<style>
+			.swiper-wrapper,.swiper-slide {
+				height: 2.1094rem;
+			}
+			.movie-box {
+				padding: 10px;
+				background: #fff;
+				margin: 10px;				
+			}
+			.movie-content {
+				padding: 10px 0px;
+			}
+			.movie-item{
+				width: 1rem;
+				margin: 0px 5px;
+			}
+			.movie-item .img-box {
+				width: 1rem;
+				height: 1.4rem;
+				margin-bottom: 5px;
+			}
+			.movie-item .title {
+				width: 100%;
+				text-align: center;
+				color: #333;
+			}
+		</style>
+	</head>
+
+	<body>
+		
+		<div id="app">			
+			<my-banner></my-banner>	
+			<my-movie-box></my-movie-box>
+		</div>
+		
+		<template id="my-banner">
+			<div class="swiper-container">
+				<div class="swiper-wrapper">
+					<div v-for="billboard in billboards" :key = "billboard.id" class="swiper-slide img-box img-loading">						
+						<img width="100%" :src="billboard.imageUrl" alt="" />						
+					</div>
+				</div>
+				<div class="swiper-pagination"></div>
+			</div>			
+		</template>
+		<template id="my-movie-box">
+			<div class="movie-box">
+				<div class="title">正在热映</div>
+				<div class="movie-content">
+					<div
+						v-for = "movie in movies"
+						:key = "movie.id"
+						 class="movie-item">
+						<div class="img-box"><img width="100%" :src="movie.images.small" alt="" /></div>
+						<p class="title">{{movie.title}}</p>
+					</div>
+				</div>
+			</div>
+		</template>
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/swiper.min.js"></script>
+		<!--最好引入axios-->
+		<script src="../js/zepto_1.1.3.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../js/vue.min.js"></script>
+		<script>
+			
+			Vue.component('my-banner', {
+				template: '#my-banner',
+				data () {
+					return {
+						billboards:[]
+					}
+				},
+				methods: {
+					getBillBoards () {
+						$.ajax({
+							url: 'https://m.maizuo.com/v4/api/billboard/home',
+							data: {
+								__t:Date.now()
+							},
+							success:(results) => {
+								this.billboards = results.data.billboards
+								Vue.nextTick(() => {
+									new Swiper('.swiper-container', {
+										pagination:{
+											el: '.swiper-pagination'
+										}
+									})
+								})
+							}
+						})
+					}
+				},
+				created () {
+					this.getBillBoards()
+				}
+			})
+			
+			
+			Vue.component('my-movie-box', {
+				template: '#my-movie-box',
+				data () {
+					return {
+						movies: []
+					}
+				},
+				created () {
+					$.ajax({
+						dataType:'jsonp',
+						url: 'http://api.douban.com/v2/movie/in_theaters',
+						data: {
+							count: 6
+						},
+						success: (results) => {
+							console.log(results.subjects)
+							this.movies = results.subjects
+						}
+					})
+				}
+			})
+			
+			new Vue({
+				el: '#app'
+			})
+			
+		</script>
+	</body>
+
+</html>
